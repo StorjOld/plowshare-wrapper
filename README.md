@@ -1,13 +1,13 @@
 plowshare-wrapper
 =================
 
-Python script for managing multi-host uploads using plowshare. After uploading it returns a JSON object with links and information about the uploads. 
+Python script for managing multi-host uploads using [plowshare](https://code.google.com/p/plowshare/). After uploading it returns a JSON object with links and information about file it uploaded. 
 
 #### Command Arguments
 
     plowshare-wrapper.py <file location> <number of hosts to upload to>
 
-After uploading it should return some JSON data like this:
+The hosts randomly chosen from a list specificed in a config string or file. After uploading it should return some JSON data like this:
 
     {
       version: "0.1",

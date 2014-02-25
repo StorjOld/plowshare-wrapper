@@ -12,6 +12,7 @@ The hosts randomly chosen from a list specificed in a config string or file. Aft
     {
       version: "0.1",
       datetime: "1391212800",
+      filesize: "23124",
       file_hash: "6e163442e29ec8d7538bc86fe2c4a48778e8ae2254632f0889da753b1c357b1b", 
       "uploads": [
       { "host_name":"mediafire" , "url":"http://www.mediafire.com/?qorncpzfe74s9" }, 

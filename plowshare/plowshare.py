@@ -1,7 +1,10 @@
 import subprocess
 
+# Same as multiprocessing, but thread only.
+# We don't need to spawn new processes for this.
+import multiprocessing.dummy
+
 import random
-import json
 import time
 import hashlib
 import os
@@ -38,17 +41,24 @@ class Config(object):
 
 
 class Plowshare(object):
+    """Upload files using the plowshare tool.
+
+    """
     def __init__(self, config_filename):
         self.cfg = Config(config_filename)
 
     def random_hosts(self, number_of_hosts):
+        """Retrieves a random subset of available hosts.
+
+        The number of hosts provided must not be larger
+        than the number of available of hosts, otherwise
+        it will throw a ValueError exception.
+        """
         return random.sample(self.cfg.hosts(), number_of_hosts)
 
     def upload(self, filename, number_of_hosts):
-        results = [
-            self.upload_to_host(filename, hostname)
-            for hostname
-            in self.random_hosts(number_of_hosts)]
+        """Uploads the given file to the specified number of hosts."""
+        results = self.multiupload(filename, self.random_hosts(number_of_hosts))
 
         return {
             "version":  "0.1",
@@ -58,20 +68,33 @@ class Plowshare(object):
             "uploads":  results
         }
 
-    def parse_output(self, hostname, output):
-        return output.split()[-1]
+    def multiupload(self, filename, hosts):
+        """Uploads filename to multiple hosts simultaneously."""
+        def f(host):
+            return self.upload_to_host(filename, host)
+
+        return multiprocessing.dummy.Pool(len(hosts)).map(f, hosts)
 
     def upload_to_host(self, filename, hostname):
-        output = ""
+        """Uploads a file to the given host.
 
+        This method relies on 'plowup' being installed on the system.
+        If it succeeds, this method returns a dictionary with the host name,
+        and the final URL. Otherwise, it returns a dictionary with the
+        host name and an error flag.
+
+        """
         try:
             output = subprocess.check_output(
                 ["plowup", hostname, filename],
                 stderr=open("/dev/null", "w"))
 
             output = self.parse_output(hostname, output)
+            return { "host_name": hostname, "url": output }
 
         except subprocess.CalledProcessError:
-            output = "error"
+            return { "host_name": hostname, "error": True }
 
-        return { "host_name": hostname, "url": output }
+    def parse_output(self, hostname, output):
+        """Parse plowup's output. For now, we just return the last line."""
+        return output.split()[-1]

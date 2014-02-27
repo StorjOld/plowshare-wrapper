@@ -30,8 +30,11 @@ to multiple hosts at once. Example:
 
 
 The above example uploads the given file to three different hosts, chosen at
-random from a predefined list. You can also specify a list of hosts (plowshare
-module names) to use:
+random from a predefined list. This list is a subset of the available plowshare
+modules, limited to the ones that allow anonymous access. You can check it in
+plowshare/hosts.py
+
+You can also specify a list of hosts (plowshare module names) to use:
 
     import plowshare
 

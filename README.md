@@ -1,7 +1,7 @@
 plowshare-wrapper
 =================
 
-Python wrapper for managing multi-host uploads using
+Python wrapper for managing multi-host uploads and downloads using
 [plowshare](https://code.google.com/p/plowshare/). After uploading it returns a
 JSON object with links and information about file it uploaded. This wrapper
 contains both a python module and a command line tool.
@@ -18,7 +18,7 @@ can build a package and install it through pip:
     python setup.py sdist
     sudo pip install dist/plowshare-0.1.0.tar.gz
 
-#### Module usage
+#### Module usage - Upload
 
 This module is composed of a single class, which can be used to upload a file
 to multiple hosts at once. Example:
@@ -58,13 +58,46 @@ Here's an example:
       version: "0.1",
       datetime: "1391212800",
       filesize: "23124",
-      file_hash: "6e163442e29ec8d7538bc86fe2c4a48778e8ae2254632f0889da753b1c357b1b",
+      filehash: "6e163442e29ec8d7538bc86fe2c4a48778e8ae2254632f0889da753b1c357b1b",
       "uploads": [
         { "host_name": "mediafire",  "url":"http://www.mediafire.com/?qorncpzfe74s9" },
         { "host_name": "rapidshare", "url":"http://rapidshare.com/files/130403982" },
         { "host_name": "anonfiles",  "error":true }
       ]
     }
+
+#### Module usage - Download
+
+You can also download uploaded files, by providing the json that the upload
+method generated, and the directory where to download the file. This method
+returns an object that contains the path where the file was downloaded, or
+an object with the error message. Example:
+
+    import plowshare
+
+    info = {
+      version: "0.1",
+      datetime: "1391212800",
+      filesize: "23124",
+      filehash: "6e163442e29ec8d7538bc86fe2c4a48778e8ae2254632f0889da753b1c357b1b",
+      "uploads": [
+        { "host_name": "mediafire",  "url":"http://www.mediafire.com/?qorncpzfe74s9" },
+        { "host_name": "rapidshare", "url":"http://rapidshare.com/files/130403982" },
+        { "host_name": "anonfiles",  "error":true }
+      ]
+    }
+
+    p = plowshare.Plowshare()
+    p.download(info, "/tmp/")
+
+There are multiple errors that can occur. Here's a list of the currently supported errors:
+
+    { "error": "unsupported format" }   # API version isn't supported
+    { "error": "no valid uploads" }     # the provided json does not contain any valid upload
+    { "error": "plowshare error" }      # plowshare blew up
+    { "error": "file sizes mismatch" }  # downloaded file size does not match the provided one
+    { "error": "file hashes mismatch" } # downloaded file hash does not match the provided one
+
 
 #### Command line tool usage
 

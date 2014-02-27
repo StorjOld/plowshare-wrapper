@@ -22,7 +22,7 @@ def sha256(path):
 
 
 class Plowshare(object):
-    """Upload files using the plowshare tool.
+    """Upload and download files using the plowshare tool.
 
     """
     def __init__(self, host_list = hosts.anonymous):
@@ -48,6 +48,32 @@ class Plowshare(object):
             "filehash": sha256(filename),
             "uploads":  results
         }
+
+    def download(self, info, output_directory):
+        if info["version"] != "0.1":
+            return { "error": "unsupported format" }
+
+        upload = self.arbitrary_valid_upload(info)
+        if upload == None:
+            return { "error": "no valid uploads" }
+
+        filename = ""
+        try:
+            output = subprocess.check_output(
+                ["plowdown", upload["url"], "-o", output_directory],
+                stderr=open("/dev/null", "w"))
+
+            filename = self.parse_output(upload["host_name"], output)
+        except:
+            return { "error": "plowshare error" }
+
+        if info["filesize"] != str(os.path.getsize(filename)):
+            return { "error": "file sizes mismatch" }
+
+        if info["filehash"] != sha256(filename):
+            return { "error": "file hashes mismatch" }
+
+        return { "path": filename }
 
     def multiupload(self, filename, hosts):
         """Uploads filename to multiple hosts simultaneously."""
@@ -79,3 +105,14 @@ class Plowshare(object):
     def parse_output(self, hostname, output):
         """Parse plowup's output. For now, we just return the last line."""
         return output.split()[-1]
+
+    def arbitrary_valid_upload(self, info):
+        valid_uploads = [
+            upload
+            for upload in info["uploads"]
+            if "error" not in upload]
+
+        if len(valid_uploads) == 0:
+            return None
+
+        return valid_uploads[0]

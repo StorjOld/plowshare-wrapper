@@ -26,7 +26,7 @@ to multiple hosts at once. Example:
     import plowshare
 
     p = plowshare.Plowshare()
-    p.upload("/home/jessie/documents/README.md", 5)
+    p.upload("/home/jessie/documents/README.md", 3)
 
 
 The above example uploads the given file to three different hosts, chosen at
@@ -35,8 +35,8 @@ module names) to use:
 
     import plowshare
 
-    p = plowshare.Plowshare(['turbobit', 'multiupload'])
-    p.upload("/home/jessie/documents/README.md", 5)
+    p = plowshare.Plowshare(['turbobit', 'multiupload', 'exoshare', 'rghost', 'bayfiles'])
+    p.upload("/home/jessie/documents/README.md", 3)
 
 
 The upload method returns a dictionary with information about the uploaded

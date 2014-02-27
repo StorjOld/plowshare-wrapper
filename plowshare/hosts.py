@@ -1,0 +1,5 @@
+anonymous = [
+    "turbobit",
+    "multiupload",
+    "rapidshare"
+]

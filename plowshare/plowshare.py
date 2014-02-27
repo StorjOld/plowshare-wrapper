@@ -1,13 +1,14 @@
 import subprocess
+import random
+import time
+import hashlib
+import os
 
 # Same as multiprocessing, but thread only.
 # We don't need to spawn new processes for this.
 import multiprocessing.dummy
 
-import random
-import time
-import hashlib
-import os
+import hosts
 
 
 def sha256(path):
@@ -20,32 +21,12 @@ def sha256(path):
     return h.hexdigest()
 
 
-class Config(object):
-    """Manage the plowshare wrapper configuration.
-
-    Given the path to the configuration file, this
-    class handles all configuration parsing and exposes
-    it as a python object.
-
-    Currently, this file is composed of only a list
-    of plowshare modules to use.
-
-    """
-    def __init__(self, filename):
-        with open(filename, 'r') as f:
-            self.host_list = f.read().split()
-
-    def hosts(self):
-        """Return the list of available host names."""
-        return self.host_list
-
-
 class Plowshare(object):
     """Upload files using the plowshare tool.
 
     """
-    def __init__(self, config_filename):
-        self.cfg = Config(config_filename)
+    def __init__(self, host_list = hosts.anonymous):
+        self.hosts = host_list
 
     def random_hosts(self, number_of_hosts):
         """Retrieves a random subset of available hosts.
@@ -54,7 +35,7 @@ class Plowshare(object):
         than the number of available of hosts, otherwise
         it will throw a ValueError exception.
         """
-        return random.sample(self.cfg.hosts(), number_of_hosts)
+        return random.sample(self.hosts, number_of_hosts)
 
     def upload(self, filename, number_of_hosts):
         """Uploads the given file to the specified number of hosts."""

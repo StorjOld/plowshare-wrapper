@@ -90,6 +90,12 @@ an object with the error message. Example:
     p = plowshare.Plowshare()
     p.download(info, "/tmp/")
 
+If it succeeds, ''download()'' returns an object with the filename, which is
+automatically prefixed with a hash:
+
+    { "path": "tmp/e01a7ef_README.md" }
+
+
 There are multiple errors that can occur. Here's a list of the currently supported errors:
 
     { "error": "unsupported format" }   # API version isn't supported

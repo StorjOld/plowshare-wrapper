@@ -8,7 +8,7 @@ contains both a python module and a command line tool.
 
 #### Installation
 
-This module presumes that you already have plowshare installed on your system,
+This module presumes that you already have plowshare installed in your system,
 and that the plowup executable is available on your PATH. You can download
 Debian, Ubuntu and other systems' packages from the official website.
 

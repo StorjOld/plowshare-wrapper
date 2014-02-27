@@ -59,12 +59,11 @@ class Plowshare(object):
 
         filename = ""
         try:
-            output = subprocess.check_output(
-                ["plowdown", upload["url"], "-o", output_directory],
-                stderr=open("/dev/null", "w"))
-
-            filename = self.parse_output(upload["host_name"], output)
-        except:
+            filename = self.download_from_host(
+                upload,
+                info["filehash"],
+                output_directory)
+        except subprocess.CalledProcessError:
             return { "error": "plowshare error" }
 
         if info["filesize"] != str(os.path.getsize(filename)):
@@ -74,6 +73,28 @@ class Plowshare(object):
             return { "error": "file hashes mismatch" }
 
         return { "path": filename }
+
+    def download_from_host(self, upload, filehash, output_directory):
+        """Downloads a file from a given host.
+
+        This method renames the file so the hash is part of its name.
+
+        """
+        output = subprocess.check_output(
+            ["plowdown", upload["url"], "-o", output_directory, "--temp-rename"],
+            stderr=open("/dev/null", "w"))
+
+        filename = self.parse_output(upload["host_name"], output)
+
+        final_filename = "{0}/{1}_{2}".format(
+            output_directory,
+            filehash[:7],
+            os.path.basename(filename))
+
+        os.rename(filename, final_filename)
+
+        return final_filename
+
 
     def multiupload(self, filename, hosts):
         """Uploads filename to multiple hosts simultaneously."""

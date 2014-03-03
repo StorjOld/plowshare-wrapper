@@ -29,7 +29,7 @@ class Plowshare(object):
         self.hosts = host_list
 
     def random_hosts(self, number_of_hosts):
-        """Retrieves a random subset of available hosts.
+        """Retrieve a random subset of available hosts.
 
         The number of hosts provided must not be larger
         than the number of available of hosts, otherwise
@@ -38,7 +38,7 @@ class Plowshare(object):
         return random.sample(self.hosts, number_of_hosts)
 
     def upload(self, filename, number_of_hosts):
-        """Uploads the given file to the specified number of hosts."""
+        """Upload the given file to the specified number of hosts."""
         results = self.multiupload(filename, self.random_hosts(number_of_hosts))
 
         return {
@@ -75,7 +75,7 @@ class Plowshare(object):
         return { "path": filename }
 
     def download_from_host(self, upload, filehash, output_directory):
-        """Downloads a file from a given host.
+        """Download a file from a given host.
 
         This method renames the file so the hash is part of its name.
 
@@ -97,14 +97,14 @@ class Plowshare(object):
 
 
     def multiupload(self, filename, hosts):
-        """Uploads filename to multiple hosts simultaneously."""
+        """Upload filename to multiple hosts simultaneously."""
         def f(host):
             return self.upload_to_host(filename, host)
 
         return multiprocessing.dummy.Pool(len(hosts)).map(f, hosts)
 
     def upload_to_host(self, filename, hostname):
-        """Uploads a file to the given host.
+        """Upload a file to the given host.
 
         This method relies on 'plowup' being installed on the system.
         If it succeeds, this method returns a dictionary with the host name,

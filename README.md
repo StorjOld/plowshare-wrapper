@@ -2,9 +2,9 @@ plowshare-wrapper
 =================
 
 Python wrapper for managing multi-host uploads and downloads using
-[plowshare](https://code.google.com/p/plowshare/). After uploading it returns a
-JSON object with links and information about file it uploaded. This wrapper
-contains both a python module and a command line tool.
+[plowshare](https://code.google.com/p/plowshare/). After uploading it returns
+an object with links to the file it uploaded. This wrapper contains both a
+python module and a command line tool.
 
 #### Installation
 
@@ -42,67 +42,46 @@ You can also specify a list of hosts (plowshare module names) to use:
     p.upload("/home/jessie/documents/README.md", 3)
 
 
-The upload method returns a dictionary with information about the uploaded
-file, and the hosts/URLs to which it uploaded the file. If some of the uploads
-fail, it doesn't return an URL, but an error flag instead. It contains:
-
-- version (if the json format changes, this will change too)
-- file size (bytes)
-- file hash (SHA-256)
-- datetime (Unix timestamp)
-- uploads (list of hosts and URLs)
+The upload method returns an array of objects with the hosts and URLs to which
+it uploaded the file. If some of the uploads fail, it doesn't return an URL,
+but an error flag instead.
 
 Here's an example:
 
-    {
-      version: "0.1",
-      datetime: "1391212800",
-      filesize: "23124",
-      filehash: "6e163442e29ec8d7538bc86fe2c4a48778e8ae2254632f0889da753b1c357b1b",
-      "uploads": [
-        { "host_name": "mediafire",  "url":"http://www.mediafire.com/?qorncpzfe74s9" },
-        { "host_name": "rapidshare", "url":"http://rapidshare.com/files/130403982" },
-        { "host_name": "anonfiles",  "error":true }
-      ]
-    }
+    [
+        { "host_name": "mediafire",  "url":   "http://www.mediafire.com/?qorncpzfe74s9" },
+        { "host_name": "rapidshare", "url":   "http://rapidshare.com/files/130403982" },
+        { "host_name": "anonfiles",  "error": true }
+    ]
 
 #### Module usage - Download
 
-You can also download uploaded files, by providing the json that the upload
-method generated, and the directory where to download the file. This method
-returns an object that contains the path where the file was downloaded, or
-an object with the error message. Example:
+You can also download uploaded files, by providing the object that the upload
+method generated, and the directory and filename where to download the file.
+This method returns an object that contains the path where the file was
+downloaded, or an object with the error message. Example:
 
     import plowshare
 
-    info = {
-      version: "0.1",
-      datetime: "1391212800",
-      filesize: "23124",
-      filehash: "6e163442e29ec8d7538bc86fe2c4a48778e8ae2254632f0889da753b1c357b1b",
-      "uploads": [
+    uploads = [
         { "host_name": "mediafire",  "url":"http://www.mediafire.com/?qorncpzfe74s9" },
         { "host_name": "rapidshare", "url":"http://rapidshare.com/files/130403982" },
         { "host_name": "anonfiles",  "error":true }
-      ]
-    }
+    ]
 
     p = plowshare.Plowshare()
-    p.download(info, "/tmp/")
+    p.download(info, "/tmp/", "readme_copy.md")
 
-If it succeeds, `download()` returns an object with the filename, which is
-automatically prefixed with a hash:
 
-    { "path": "tmp/e01a7ef_README.md" }
+If it succeeds, `download()` returns an object with the full path filename:
+
+    { "path": "/tmp/readme.md_copy" }
 
 
 There are multiple errors that can occur. Here's a list of the currently supported errors:
 
-    { "error": "unsupported format" }   # API version isn't supported
-    { "error": "no valid uploads" }     # the provided json does not contain any valid upload
+    { "error": "no valid uploads" }     # the provided object does not contain any valid upload
     { "error": "plowshare error" }      # plowshare blew up
-    { "error": "file sizes mismatch" }  # downloaded file size does not match the provided one
-    { "error": "file hashes mismatch" } # downloaded file hash does not match the provided one
 
 
 #### Command line tool usage

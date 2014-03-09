@@ -11,16 +11,6 @@ import multiprocessing.dummy
 import hosts
 
 
-def sha256(path):
-    """Return the sha256 digest of the file located at the specified path."""
-    h = hashlib.sha256()
-    with open(path) as f:
-        for chunk in iter(lambda: f.read(8192), b''):
-            h.update(chunk)
-
-    return h.hexdigest()
-
-
 class Plowshare(object):
     """Upload and download files using the plowshare tool.
 
@@ -28,70 +18,56 @@ class Plowshare(object):
     def __init__(self, host_list = hosts.anonymous):
         self.hosts = host_list
 
+
     def random_hosts(self, number_of_hosts):
         """Retrieve a random subset of available hosts.
 
         The number of hosts provided must not be larger
         than the number of available of hosts, otherwise
         it will throw a ValueError exception.
+
         """
         return random.sample(self.hosts, number_of_hosts)
 
+
     def upload(self, filename, number_of_hosts):
         """Upload the given file to the specified number of hosts."""
-        results = self.multiupload(filename, self.random_hosts(number_of_hosts))
+        return self.multiupload(filename, self.random_hosts(number_of_hosts))
 
-        return {
-            "version":  "0.1",
-            "datetime": str(int(time.time())),
-            "filesize": str(os.path.getsize(filename)),
-            "filehash": sha256(filename),
-            "uploads":  results
-        }
 
-    def download(self, info, output_directory):
-        if info["version"] != "0.1":
-            return { "error": "unsupported format" }
+    def download(self, uploads, output_directory, filename):
+        """Download a file from one of the provided sources."""
 
-        upload = self.arbitrary_valid_upload(info)
+        upload = self.random_upload(uploads)
         if upload == None:
             return { "error": "no valid uploads" }
 
-        filename = ""
         try:
             filename = self.download_from_host(
                 upload,
-                info["filehash"],
-                output_directory)
+                output_directory,
+                filename)
+
+            return { "path": filename }
+
         except subprocess.CalledProcessError:
             return { "error": "plowshare error" }
 
-        if info["filesize"] != str(os.path.getsize(filename)):
-            return { "error": "file sizes mismatch" }
 
-        if info["filehash"] != sha256(filename):
-            return { "error": "file hashes mismatch" }
-
-        return { "path": filename }
-
-    def download_from_host(self, upload, filehash, output_directory):
+    def download_from_host(self, upload, output_directory, filename):
         """Download a file from a given host.
 
-        This method renames the file so the hash is part of its name.
+        This method renames the file to the given string.
 
         """
         output = subprocess.check_output(
             ["plowdown", upload["url"], "-o", output_directory, "--temp-rename"],
             stderr=open("/dev/null", "w"))
 
-        filename = self.parse_output(upload["host_name"], output)
+        temporary_filename = self.parse_output(upload["host_name"], output)
+        final_filename     = os.path.join(output_directory, filename)
 
-        final_filename = "{0}/{1}_{2}".format(
-            output_directory,
-            filehash[:7],
-            os.path.basename(filename))
-
-        os.rename(filename, final_filename)
+        os.rename(temporary_filename, final_filename)
 
         return final_filename
 
@@ -102,6 +78,7 @@ class Plowshare(object):
             return self.upload_to_host(filename, host)
 
         return multiprocessing.dummy.Pool(len(hosts)).map(f, hosts)
+
 
     def upload_to_host(self, filename, hostname):
         """Upload a file to the given host.
@@ -123,17 +100,24 @@ class Plowshare(object):
         except subprocess.CalledProcessError:
             return { "host_name": hostname, "error": True }
 
+
     def parse_output(self, hostname, output):
-        """Parse plowup's output. For now, we just return the last line."""
+        """Parse plowup's output.
+
+        For now, we just return the last line.
+
+        """
         return output.split()[-1]
 
-    def arbitrary_valid_upload(self, info):
+
+    def random_upload(self, uploads):
+        """Select a random valid upload."""
         valid_uploads = [
             upload
-            for upload in info["uploads"]
+            for upload in uploads
             if "error" not in upload]
 
         if len(valid_uploads) == 0:
             return None
 
-        return valid_uploads[0]
+        return random.choice(valid_uploads)

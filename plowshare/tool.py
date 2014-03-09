@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 import plowshare
 import json
 import sys

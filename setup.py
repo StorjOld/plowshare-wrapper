@@ -2,7 +2,7 @@ from distutils.core import setup
 
 setup(
     name='plowshare',
-    version='0.2.0',
+    version='0.3.0',
     author='Hugo Peixoto',
     author_email='hugo.peixoto@gmail.com',
     packages=['plowshare'],

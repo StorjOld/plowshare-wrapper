@@ -16,7 +16,7 @@ You can clone this repository and use its modules directly. Alternatively, you
 can build a package and install it through pip:
 
     python setup.py sdist
-    sudo pip install dist/plowshare-0.1.0.tar.gz
+    sudo pip install dist/plowshare-0.3.0.tar.gz
 
 #### Module usage - Upload
 

@@ -8,15 +8,8 @@ python module and a command line tool.
 
 #### Installation
 
-This module presumes that you already have plowshare installed in your system,
-and that the plowup executable is available on your PATH. You can download
-Debian, Ubuntu and other systems' packages from the official website.
+Check [INSTALL.md](INSTALL.md) for installation instructions.
 
-You can clone this repository and use its modules directly. Alternatively, you
-can build a package and install it through pip:
-
-    python setup.py sdist
-    sudo pip install dist/plowshare-0.3.0.tar.gz
 
 #### Module usage - Upload
 
@@ -75,7 +68,7 @@ downloaded, or an object with the error message. Example:
 
 If it succeeds, `download()` returns an object with the full path filename:
 
-    { "path": "/tmp/readme.md_copy" }
+    { "path": "/tmp/readme_copy.md" }
 
 
 There are multiple errors that can occur. Here's a list of the currently supported errors:

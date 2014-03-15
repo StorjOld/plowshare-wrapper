@@ -16,13 +16,10 @@ If you're running Debian, you can install it using the following commands:
 
 #### Using pip
 
-To build and install with pip, you can clone the repository and do the
-following commands:
-
-    python setup.py sdist
-    sudo pip install dist/plowshare-VERSION.tar.gz
-
-To install it directly from github:
+Install plowshare-wrapper using pip, directly from github:
 
     sudo pip install git+https://github.com/Storj/plowshare-wrapper
 
+If you wish to install a specific version/tag, you can do it using the `@` syntax:
+
+    sudo pip install git+https://github.com/Storj/plowshare-wrapper@v0.3.0

@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/Storj/plowshare-wrapper.svg)](https://travis-ci.org/Storj/plowshare-wrapper)
+[![Coverage Status](https://coveralls.io/repos/Storj/plowshare-wrapper/badge.png)](https://coveralls.io/r/Storj/plowshare-wrapper)
 
 plowshare-wrapper
 =================

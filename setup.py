@@ -1,4 +1,4 @@
-from distutils.core import setup
+from setuptools import setup
 
 setup(
     name='plowshare',
@@ -12,4 +12,9 @@ setup(
     description='Manages multi-host uploads using plowshare.',
     long_description=open('README.md').read(),
     install_requires=[],
-    )
+    extras_require={
+        'develop': [
+            'tox',
+        ]
+    }
+)

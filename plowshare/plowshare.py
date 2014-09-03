@@ -1,14 +1,12 @@
 import subprocess
 import random
-import time
-import hashlib
 import os
 
 # Same as multiprocessing, but thread only.
 # We don't need to spawn new processes for this.
 import multiprocessing.dummy
 
-import hosts
+from . import hosts
 
 
 class Plowshare(object):

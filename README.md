@@ -97,3 +97,16 @@ hosts, chosen at random:
 
 The command prints out a json representation of the result status object.
 Details on the format of the json can be seen above.
+
+
+#### Tests
+
+Install development dependencies with:
+
+    pip install -e '.[develop]'
+
+Run:
+
+    tox
+
+This will run the test suite on Python 2.7 and 3.4.

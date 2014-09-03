@@ -1,6 +1,6 @@
-import subprocess
-import random
 import os
+import random
+import subprocess
 
 # Same as multiprocessing, but thread only.
 # We don't need to spawn new processes for this.
@@ -13,7 +13,7 @@ class Plowshare(object):
     """Upload and download files using the plowshare tool.
 
     """
-    def __init__(self, host_list = hosts.anonymous):
+    def __init__(self, host_list=hosts.anonymous):
         self.hosts = host_list
 
 

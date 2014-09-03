@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Storj/plowshare-wrapper.svg)](https://travis-ci.org/Storj/plowshare-wrapper)
+
 plowshare-wrapper
 =================
 

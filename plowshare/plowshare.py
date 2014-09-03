@@ -1,7 +1,5 @@
 import subprocess
 import random
-import time
-import hashlib
 import os
 
 # Same as multiprocessing, but thread only.

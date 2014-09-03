@@ -6,7 +6,7 @@ import os
 # We don't need to spawn new processes for this.
 import multiprocessing.dummy
 
-import hosts
+from . import hosts
 
 
 class Plowshare(object):

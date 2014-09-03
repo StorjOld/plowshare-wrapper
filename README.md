@@ -6,7 +6,7 @@ plowshare-wrapper
 Python wrapper for managing multi-host uploads and downloads using
 [plowshare](https://code.google.com/p/plowshare/). After uploading it returns
 an object with links to the file it uploaded. This wrapper contains both a
-python module and a command line tool.
+Python module and a command line tool.
 
 #### Installation
 

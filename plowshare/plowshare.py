@@ -1,10 +1,12 @@
 import os
 import random
 import subprocess
+from collections import defaultdict
 
 # Same as multiprocessing, but thread only.
 # We don't need to spawn new processes for this.
 import multiprocessing.dummy
+from multiprocessing import Manager
 
 from . import hosts
 
@@ -15,12 +17,30 @@ class Plowshare(object):
     """
     def __init__(self, host_list=hosts.anonymous):
         self.hosts = host_list
+        self._host_errors = defaultdict(int)
 
     def _run_command(self, command, **kwargs):
         try:
             return {'output': subprocess.check_output(command, **kwargs)}
         except Exception as e:
             return {'error': str(e)}
+
+    def _hosts_by_success(self, hosts=[]):
+        """Order hosts by most successful (least amount of errors) first"""
+        hosts = hosts if hosts else self.hosts
+        return sorted(hosts, key=lambda h: self._host_errors[h])
+
+    def _filter_sources(self, sources):
+        """Remove sources with errors and return ordered by host success"""
+        filtered, hosts = [], []
+        for source in sources:
+            if 'error' in source:
+                continue
+            filtered.append(source)
+            hosts.append(source['host_name'])
+
+        return sorted(filtered, key=lambda s: \
+                self._hosts_by_success(hosts).index(s['host_name']))
 
     def random_hosts(self, number_of_hosts):
         """Retrieve a random subset of available hosts.
@@ -39,13 +59,40 @@ class Plowshare(object):
 
 
     def download(self, sources, output_directory, filename):
-        """Download a file from one of the provided sources."""
+        """Download a file from one of the provided sources
 
-        source = self.random_source(sources)
-        if source is None:
+        The sources will be ordered by least amount of errors, so most
+        successful hosts will be tried first. In case of failure, the next
+        source will be attempted, until the first successful download is
+        completed or all sources have been depleted.
+
+        Args:
+            sources: A list of dicts with 'host_name' and 'url' keys.
+            output_directory (str): Directory to save the downloaded file in.
+            filename (str): Filename assigned to the downloaded file.
+        Returns:
+            A dict with 'host_name' and 'filename' keys if the download is
+            successful, or an empty dict otherwise.
+
+        """
+        valid_sources = self._filter_sources(sources)
+        if not valid_sources:
             return {'error': 'no valid sources'}
 
-        return self.download_from_host(source, output_directory, filename)
+        manager = Manager()
+        successful_downloads = manager.list([])
+
+        def f(source):
+            if not successful_downloads:
+                result = self.download_from_host(source, output_directory, filename)
+                if 'error' in result:
+                    self._host_errors[source['host_name']] += 1
+                else:
+                    successful_downloads.append(result)
+
+        multiprocessing.dummy.Pool(len(valid_sources)).map(f, valid_sources)
+
+        return successful_downloads[0] if successful_downloads else {}
 
 
     def download_from_host(self, source, output_directory, filename):
@@ -109,16 +156,3 @@ class Plowshare(object):
 
         """
         return output.split()[-1]
-
-
-    def random_source(self, sources):
-        """Select a random valid source."""
-        valid_sources = [
-            source
-            for source in sources
-            if "error" not in source]
-
-        if len(valid_sources) == 0:
-            return None
-
-        return random.choice(valid_sources)

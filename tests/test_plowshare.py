@@ -24,7 +24,10 @@ def patch_subprocess_exc(monkeypatch):
     import subprocess
 
     def raise_exc(*args, **kwargs):
-        raise subprocess.CalledProcessError(1, args[0][0] if args and args[0] else '', '')
+        if args and 'fail' in args[0]:
+            raise subprocess.CalledProcessError(1, args[0][0] if args and args[0] else '', '')
+        else:
+            return 'output'
 
     monkeypatch.setattr(subprocess, 'check_output', raise_exc)
 
@@ -53,11 +56,6 @@ def plowinst():
     return Plowshare(['ge_tt', 'multiupload', 'rghost'])
 
 @pytest.fixture
-def patch_plow_random_source(monkeypatch):
-    result = {'host_name': 'rghost', 'url': 'http://rghost.net/57830097'}
-    monkeypatch.setattr(Plowshare, 'random_source', lambda *a: result if a and a[1] else None)
-
-@pytest.fixture
 def patch_plow_upload_to_host(monkeypatch):
     result = {'host_name': 'rghost', 'url': 'http://rghost.net/57830097'}
     monkeypatch.setattr(Plowshare, 'upload_to_host', lambda *a: result)
@@ -72,18 +70,15 @@ def patch_plow_download_from_host(monkeypatch):
     monkeypatch.setattr(Plowshare, 'download_from_host',
             lambda *a: {'host_name': 'rghost', 'filename': 'test/test.tgz'})
 
+@pytest.fixture
+def patch_plow_host_errors(monkeypatch, plowinst):
+    result = {'rghost': 0, 'multiupload': 3, 'ge_tt': 1}
+    monkeypatch.setattr(plowinst, '_host_errors', result)
+    return plowinst
+
+
 
 # Tests ###
-
-def test_random_source(plowinst, patch_rnd_choice):
-    assert plowinst.random_source(['ok', 'yes']) == FILEMETA
-
-def test_random_source_empty(plowinst, patch_rnd_choice):
-    assert plowinst.random_source([]) is None
-
-def test_random_source_empty_error(plowinst, patch_rnd_choice):
-    assert plowinst.random_source(['error']) is None
-
 
 def test_random_hosts(plowinst, patch_rnd_sample):
     result = plowinst.random_hosts(2)
@@ -108,27 +103,33 @@ def test_upload_to_host(plowinst, patch_subprocess):
     assert result == {'host_name': 'rghost', 'url': 'http://rghost.net/57830097'}
 
 def test_upload_to_host_error(plowinst, patch_subprocess_exc):
-    result = plowinst.upload_to_host('fasd.tar.gz', 'rghost')
+    result = plowinst.upload_to_host('fail', 'rghost')
     assert result == {
             'host_name': 'rghost',
             'error': "Command 'plowup' returned non-zero exit status 1"
         }
 
 
-def test_download(plowinst, patch_plow_download_from_host, patch_plow_random_source):
-    result = plowinst.download(['test'], 'test', 'test.tgz')
+def test_download(plowinst, patch_plow_download_from_host):
+    result = plowinst.download([{'host_name': 'rghost', 'url': 'testurl'}], 'test', 'test.tgz')
     assert result == {'filename': 'test/test.tgz', 'host_name': 'rghost'}
 
-def test_download_error(plowinst, patch_plow_random_source, patch_subprocess_exc):
-    result = plowinst.download(['test'], 'test', 'test.tgz')
-    assert result == {
-            'host_name': 'rghost',
-            'error': "Command 'plowdown' returned non-zero exit status 1"
-        }
+def test_download_error(plowinst, patch_subprocess_exc):
+    result = plowinst.download([{'host_name': 'rghost', 'url': 'fail'}], 'test', 'test.tgz')
+    assert result == {}
 
-def test_download_none(plowinst, patch_plow_random_source):
+def test_download_none(plowinst):
     result = plowinst.download([], 'test', 'test.tgz')
     assert result == {'error': 'no valid sources'}
+
+def test_download_failover(plowinst, patch_subprocess_exc, patch_rename):
+    sources = [
+        {'host_name': 'rghost', 'url': 'fail'},
+        {'host_name': 'ge_tt', 'error': 'testerror'},
+        {'host_name': 'multiupload', 'url': 'testurl'},
+    ]
+    result = plowinst.download(sources, 'test', 'test.tgz')
+    assert result == {'host_name': 'multiupload', 'filename': 'test/test.tgz'}
 
 
 def test_upload(plowinst, patch_plow_multiupload):
@@ -139,3 +140,23 @@ def test_upload(plowinst, patch_plow_multiupload):
 def test_multiupload(plowinst, patch_plow_upload_to_host):
     result = plowinst.multiupload('test.tgz', ['rghost'])
     assert result == [{'host_name': 'rghost', 'url': 'http://rghost.net/57830097'}]
+
+
+def test_hosts_by_success(patch_plow_host_errors):
+    inst = patch_plow_host_errors
+    result = inst._hosts_by_success(inst.hosts)
+    assert result == ['rghost', 'ge_tt', 'multiupload']
+
+def test_filter_sources(patch_plow_host_errors):
+    inst = patch_plow_host_errors
+    sources = [
+        {'host_name': 'multiupload', 'url': 'testurl'},
+        {'host_name': 'rghost', 'url': 'testurl'},
+        {'host_name': 'ge_tt', 'error': 'testerror'},
+    ]
+
+    result = inst._filter_sources(sources)
+    assert result == [
+        {'host_name': 'rghost', 'url': 'testurl'},
+        {'host_name': 'multiupload', 'url': 'testurl'}
+    ]

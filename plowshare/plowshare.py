@@ -16,6 +16,11 @@ class Plowshare(object):
     def __init__(self, host_list=hosts.anonymous):
         self.hosts = host_list
 
+    def _run_command(self, command, **kwargs):
+        try:
+            return {'output': subprocess.check_output(command, **kwargs)}
+        except Exception as e:
+            return {'error': str(e)}
 
     def random_hosts(self, number_of_hosts):
         """Retrieve a random subset of available hosts.
@@ -40,16 +45,7 @@ class Plowshare(object):
         if upload == None:
             return { "error": "no valid uploads" }
 
-        try:
-            filename = self.download_from_host(
-                upload,
-                output_directory,
-                filename)
-
-            return { "path": filename }
-
-        except subprocess.CalledProcessError:
-            return { "error": "plowshare error" }
+        return self.download_from_host(upload, output_directory, filename)
 
 
     def download_from_host(self, upload, output_directory, filename):
@@ -58,16 +54,23 @@ class Plowshare(object):
         This method renames the file to the given string.
 
         """
-        output = subprocess.check_output(
+        result = self._run_command(
             ["plowdown", upload["url"], "-o", output_directory, "--temp-rename"],
-            stderr=open("/dev/null", "w"))
+            stderr=open("/dev/null", "w")
+        )
 
-        temporary_filename = self.parse_output(upload["host_name"], output)
-        final_filename     = os.path.join(output_directory, filename)
+        result['host_name'] = upload['host_name']
 
-        os.rename(temporary_filename, final_filename)
+        if 'error' in result:
+            return result
 
-        return final_filename
+        temporary_filename = self.parse_output(result['host_name'], result['output'])
+        result['filename'] = os.path.join(output_directory, filename)
+        result.pop('output')
+
+        os.rename(temporary_filename, result['filename'])
+
+        return result
 
 
     def multiupload(self, filename, hosts):
@@ -87,16 +90,16 @@ class Plowshare(object):
         host name and an error flag.
 
         """
-        try:
-            output = subprocess.check_output(
-                ["plowup", hostname, filename],
-                stderr=open("/dev/null", "w"))
+        result = self._run_command(
+            ["plowup", hostname, filename],
+            stderr=open("/dev/null", "w")
+        )
 
-            output = self.parse_output(hostname, output)
-            return { "host_name": hostname, "url": output }
+        result['host_name'] = hostname
+        if 'error' not in result:
+            result['url'] = self.parse_output(hostname, result.pop('output'))
 
-        except subprocess.CalledProcessError:
-            return { "host_name": hostname, "error": True }
+        return result
 
 
     def parse_output(self, hostname, output):

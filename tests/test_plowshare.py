@@ -69,7 +69,8 @@ def patch_plow_multiupload(monkeypatch):
 
 @pytest.fixture
 def patch_plow_download_from_host(monkeypatch):
-    monkeypatch.setattr(Plowshare, 'download_from_host', lambda *a: 'test/test.tgz')
+    monkeypatch.setattr(Plowshare, 'download_from_host',
+            lambda *a: {'host_name': 'rghost', 'filename': 'test/test.tgz'})
 
 
 # Tests ###
@@ -99,7 +100,7 @@ def test_parse_output(plowinst):
 
 def test_download_from_host(plowinst, patch_subprocess, patch_rename):
     result = plowinst.download_from_host(FILEMETA, 'test', 'test.tgz')
-    assert result == 'test/test.tgz'
+    assert result == {'filename': 'test/test.tgz', 'host_name': 'rghost'}
 
 
 def test_upload_to_host(plowinst, patch_subprocess):
@@ -108,16 +109,22 @@ def test_upload_to_host(plowinst, patch_subprocess):
 
 def test_upload_to_host_error(plowinst, patch_subprocess_exc):
     result = plowinst.upload_to_host('fasd.tar.gz', 'rghost')
-    assert result == {'host_name': 'rghost', 'error': True}
+    assert result == {
+            'host_name': 'rghost',
+            'error': "Command 'plowup' returned non-zero exit status 1"
+        }
 
 
 def test_download(plowinst, patch_plow_download_from_host, patch_plow_random_upload):
     result = plowinst.download(['test'], 'test', 'test.tgz')
-    assert result == {'path': 'test/test.tgz'}
+    assert result == {'filename': 'test/test.tgz', 'host_name': 'rghost'}
 
 def test_download_error(plowinst, patch_plow_random_upload, patch_subprocess_exc):
     result = plowinst.download(['test'], 'test', 'test.tgz')
-    assert result == {'error': 'plowshare error'}
+    assert result == {
+            'host_name': 'rghost',
+            'error': "Command 'plowdown' returned non-zero exit status 1"
+        }
 
 def test_download_none(plowinst, patch_plow_random_upload):
     result = plowinst.download([], 'test', 'test.tgz')

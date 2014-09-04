@@ -9,6 +9,7 @@ import multiprocessing.dummy
 from multiprocessing import Manager
 
 from . import hosts
+import settings
 
 
 class Plowshare(object):
@@ -121,11 +122,35 @@ class Plowshare(object):
 
 
     def multiupload(self, filename, hosts):
-        """Upload filename to multiple hosts simultaneously."""
-        def f(host):
-            return self.upload_to_host(filename, host)
+        """Upload file to multiple hosts simultaneously
 
-        return multiprocessing.dummy.Pool(len(hosts)).map(f, hosts)
+        The upload will be attempted for each host until the optimal file
+        redundancy is achieved (a percentage of successful uploads) or the host
+        list is depleted.
+
+        Args:
+            filename (str): The filename of the file to upload.
+            hosts (list): A list of hosts as defined in the master host list.
+        Returns:
+            A list of dicts with 'host_name' and 'url' keys for all successful
+            uploads or an empty list if all uploads failed.
+
+        """
+        manager = Manager()
+        successful_uploads = manager.list([])
+
+        def f(host):
+            if len(successful_uploads)/float(len(hosts)) < settings.MIN_FILE_REDUNDANCY:
+                # Optimal redundancy not achieved, keep going
+                result = self.upload_to_host(filename, host)
+                if 'error' in result:
+                    self._host_errors[host] += 1
+                else:
+                    successful_uploads.append(result)
+
+        multiprocessing.dummy.Pool(len(hosts)).map(f, self._hosts_by_success(hosts))
+
+        return list(successful_uploads)
 
 
     def upload_to_host(self, filename, hostname):

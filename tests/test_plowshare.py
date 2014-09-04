@@ -53,9 +53,9 @@ def plowinst():
     return Plowshare(['ge_tt', 'multiupload', 'rghost'])
 
 @pytest.fixture
-def patch_plow_random_upload(monkeypatch):
+def patch_plow_random_source(monkeypatch):
     result = {'host_name': 'rghost', 'url': 'http://rghost.net/57830097'}
-    monkeypatch.setattr(Plowshare, 'random_upload', lambda *a: result if a and a[1] else None)
+    monkeypatch.setattr(Plowshare, 'random_source', lambda *a: result if a and a[1] else None)
 
 @pytest.fixture
 def patch_plow_upload_to_host(monkeypatch):
@@ -75,14 +75,14 @@ def patch_plow_download_from_host(monkeypatch):
 
 # Tests ###
 
-def test_random_upload(plowinst, patch_rnd_choice):
-    assert plowinst.random_upload(['ok', 'yes']) == FILEMETA
+def test_random_source(plowinst, patch_rnd_choice):
+    assert plowinst.random_source(['ok', 'yes']) == FILEMETA
 
-def test_random_upload_empty(plowinst, patch_rnd_choice):
-    assert plowinst.random_upload([]) is None
+def test_random_source_empty(plowinst, patch_rnd_choice):
+    assert plowinst.random_source([]) is None
 
-def test_random_upload_empty_error(plowinst, patch_rnd_choice):
-    assert plowinst.random_upload(['error']) is None
+def test_random_source_empty_error(plowinst, patch_rnd_choice):
+    assert plowinst.random_source(['error']) is None
 
 
 def test_random_hosts(plowinst, patch_rnd_sample):
@@ -115,20 +115,20 @@ def test_upload_to_host_error(plowinst, patch_subprocess_exc):
         }
 
 
-def test_download(plowinst, patch_plow_download_from_host, patch_plow_random_upload):
+def test_download(plowinst, patch_plow_download_from_host, patch_plow_random_source):
     result = plowinst.download(['test'], 'test', 'test.tgz')
     assert result == {'filename': 'test/test.tgz', 'host_name': 'rghost'}
 
-def test_download_error(plowinst, patch_plow_random_upload, patch_subprocess_exc):
+def test_download_error(plowinst, patch_plow_random_source, patch_subprocess_exc):
     result = plowinst.download(['test'], 'test', 'test.tgz')
     assert result == {
             'host_name': 'rghost',
             'error': "Command 'plowdown' returned non-zero exit status 1"
         }
 
-def test_download_none(plowinst, patch_plow_random_upload):
+def test_download_none(plowinst, patch_plow_random_source):
     result = plowinst.download([], 'test', 'test.tgz')
-    assert result == {'error': 'no valid uploads'}
+    assert result == {'error': 'no valid sources'}
 
 
 def test_upload(plowinst, patch_plow_multiupload):

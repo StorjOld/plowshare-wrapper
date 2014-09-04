@@ -38,28 +38,28 @@ class Plowshare(object):
         return self.multiupload(filename, self.random_hosts(number_of_hosts))
 
 
-    def download(self, uploads, output_directory, filename):
+    def download(self, sources, output_directory, filename):
         """Download a file from one of the provided sources."""
 
-        upload = self.random_upload(uploads)
-        if upload == None:
-            return { "error": "no valid uploads" }
+        source = self.random_source(sources)
+        if source is None:
+            return {'error': 'no valid sources'}
 
-        return self.download_from_host(upload, output_directory, filename)
+        return self.download_from_host(source, output_directory, filename)
 
 
-    def download_from_host(self, upload, output_directory, filename):
+    def download_from_host(self, source, output_directory, filename):
         """Download a file from a given host.
 
         This method renames the file to the given string.
 
         """
         result = self._run_command(
-            ["plowdown", upload["url"], "-o", output_directory, "--temp-rename"],
+            ["plowdown", source["url"], "-o", output_directory, "--temp-rename"],
             stderr=open("/dev/null", "w")
         )
 
-        result['host_name'] = upload['host_name']
+        result['host_name'] = source['host_name']
 
         if 'error' in result:
             return result
@@ -111,14 +111,14 @@ class Plowshare(object):
         return output.split()[-1]
 
 
-    def random_upload(self, uploads):
-        """Select a random valid upload."""
-        valid_uploads = [
-            upload
-            for upload in uploads
-            if "error" not in upload]
+    def random_source(self, sources):
+        """Select a random valid source."""
+        valid_sources = [
+            source
+            for source in sources
+            if "error" not in source]
 
-        if len(valid_uploads) == 0:
+        if len(valid_sources) == 0:
             return None
 
-        return random.choice(valid_uploads)
+        return random.choice(valid_sources)

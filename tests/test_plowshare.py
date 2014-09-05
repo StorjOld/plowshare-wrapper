@@ -3,7 +3,21 @@ import pytest
 
 from plowshare import Plowshare
 
+
 # Fixtures ###
+
+class MockPool(object):
+    """A mock of multiprocessing's Pool that executes map() sequentially"""
+    def __init__(self, processes, *args, **kwargs):
+        self._processes = processes
+
+    def map(self, func, iterable, *args, **kwargs):
+        return list(map(func, iterable))
+
+@pytest.fixture
+def patch_multiprocessing(monkeypatch):
+    # Actually mock ThreadPool since multiprocessing.dummy.Pool is a wrapper around it
+    monkeypatch.setattr('multiprocessing.pool.ThreadPool', MockPool)
 
 @pytest.fixture
 def patch_subprocess(monkeypatch):
@@ -114,7 +128,7 @@ def test_upload_to_host_error(plowinst, patch_subprocess_exc):
         }
 
 
-def test_download(plowinst, patch_plow_download_from_host):
+def test_download(plowinst, patch_multiprocessing, patch_plow_download_from_host):
     result = plowinst.download([{'host_name': 'rghost', 'url': 'testurl'}], 'test', 'test.tgz')
     assert result == {'filename': 'test/test.tgz', 'host_name': 'rghost'}
 
@@ -126,7 +140,7 @@ def test_download_none(plowinst):
     result = plowinst.download([], 'test', 'test.tgz')
     assert result == {'error': 'no valid sources'}
 
-def test_download_failover(plowinst, patch_subprocess_exc, patch_rename):
+def test_download_failover(plowinst, patch_multiprocessing, patch_subprocess_exc, patch_rename):
     sources = [
         {'host_name': 'rghost', 'url': 'fail'},
         {'host_name': 'ge_tt', 'error': 'testerror'},
@@ -141,11 +155,12 @@ def test_upload(plowinst, patch_plow_multiupload):
     assert result == [{'host_name': 'rghost', 'url': 'http://rghost.net/57830097'}]
 
 
-def test_multiupload(plowinst, patch_plow_upload_to_host):
+def test_multiupload(plowinst, patch_multiprocessing, patch_plow_upload_to_host):
     result = plowinst.multiupload('test.tgz', ['rghost'])
     assert result == [{'host_name': 'rghost', 'url': 'http://rghost.net/57830097'}]
 
-def test_multiupload_failover(patch_settings, patch_plow_host_errors, patch_subprocess_exc):
+def test_multiupload_failover(patch_settings, patch_multiprocessing,
+        patch_plow_host_errors, patch_subprocess_exc):
     inst = patch_plow_host_errors
     result = inst.multiupload('test.tgz', ['fail', 'multiupload', 'rghost', 'ge_tt'])
     # Only one host upload will be done since the redundancy threshold is so low (0.2)

@@ -79,8 +79,7 @@ def patch_plow_host_errors(monkeypatch, plowinst):
 
 @pytest.fixture
 def patch_settings(monkeypatch):
-    import settings
-    monkeypatch.setattr(settings, 'MIN_FILE_REDUNDANCY', 0.2)
+    monkeypatch.setattr('plowshare.settings.MIN_FILE_REDUNDANCY', 0.2)
 
 
 # Tests ###
@@ -146,7 +145,7 @@ def test_multiupload(plowinst, patch_plow_upload_to_host):
     result = plowinst.multiupload('test.tgz', ['rghost'])
     assert result == [{'host_name': 'rghost', 'url': 'http://rghost.net/57830097'}]
 
-def test_multiupload_failover(patch_plow_host_errors, patch_subprocess_exc, patch_settings):
+def test_multiupload_failover(patch_settings, patch_plow_host_errors, patch_subprocess_exc):
     inst = patch_plow_host_errors
     result = inst.multiupload('test.tgz', ['fail', 'multiupload', 'rghost', 'ge_tt'])
     # Only one host upload will be done since the redundancy threshold is so low (0.2)

@@ -9,7 +9,7 @@ import multiprocessing.dummy
 from multiprocessing import Manager
 
 from . import hosts
-import settings
+from . import settings
 
 
 class Plowshare(object):

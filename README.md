@@ -68,15 +68,18 @@ downloaded, or an object with the error message. Example:
     p.download(info, "/tmp/", "readme_copy.md")
 
 
-If it succeeds, `download()` returns an object with the full path filename:
+If multiple sources are provided, they are used as failovers for downloading the
+file. If at least one source is successful, the others won't be attempted and
+`download()` will return an object with the full path filename and the first host
+it successfuly downloaded it from:
 
-    { "path": "/tmp/readme_copy.md" }
+    { "host_name": "mediafire", "filename": "/tmp/readme_copy.md" }
 
 
 There are multiple errors that can occur. Here's a list of the currently supported errors:
 
-    { "error": "no valid uploads" }     # the provided object does not contain any valid upload
-    { "error": "plowshare error" }      # plowshare blew up
+    { "error": "no valid sources" }     # the provided object does not contain a valid source URL
+    { "error": "<error message>" }      # something went wrong with invoking the plowshare commands
 
 
 #### Command line tool usage
@@ -85,17 +88,13 @@ plowshare-wrapper comes with a command line tool to upload a single file to a
 given number of anonymous hosts. If you have installed it by just cloning this
 repository, you can run:
 
-    plowshare/tool.py <file location> <number of hosts to upload to>
-
-If you installed it using pip, type:
-
-    python -mplowshare.tool <file location> <number of hosts to upload to>
+    bin/tool.py <file location> <number of hosts to upload to>
 
 
 For example, the following uploads this project's README to five different
 hosts, chosen at random:
 
-    plowshare/tool.py README.md 5
+    bin/tool.py README.md 5
 
 The command prints out a json representation of the result status object.
 Details on the format of the json can be seen above.

@@ -1,21 +1,47 @@
-import subprocess
-import random
 import os
+import random
+import subprocess
+from collections import defaultdict
 
 # Same as multiprocessing, but thread only.
 # We don't need to spawn new processes for this.
 import multiprocessing.dummy
+from multiprocessing import Manager
 
 from . import hosts
+from . import settings
 
 
 class Plowshare(object):
     """Upload and download files using the plowshare tool.
 
     """
-    def __init__(self, host_list = hosts.anonymous):
+    def __init__(self, host_list=hosts.anonymous):
         self.hosts = host_list
+        self._host_errors = defaultdict(int)
 
+    def _run_command(self, command, **kwargs):
+        try:
+            return {'output': subprocess.check_output(command, **kwargs)}
+        except Exception as e:
+            return {'error': str(e)}
+
+    def _hosts_by_success(self, hosts=[]):
+        """Order hosts by most successful (least amount of errors) first"""
+        hosts = hosts if hosts else self.hosts
+        return sorted(hosts, key=lambda h: self._host_errors[h])
+
+    def _filter_sources(self, sources):
+        """Remove sources with errors and return ordered by host success"""
+        filtered, hosts = [], []
+        for source in sources:
+            if 'error' in source:
+                continue
+            filtered.append(source)
+            hosts.append(source['host_name'])
+
+        return sorted(filtered, key=lambda s: \
+                self._hosts_by_success(hosts).index(s['host_name']))
 
     def random_hosts(self, number_of_hosts):
         """Retrieve a random subset of available hosts.
@@ -33,49 +59,98 @@ class Plowshare(object):
         return self.multiupload(filename, self.random_hosts(number_of_hosts))
 
 
-    def download(self, uploads, output_directory, filename):
-        """Download a file from one of the provided sources."""
+    def download(self, sources, output_directory, filename):
+        """Download a file from one of the provided sources
 
-        upload = self.random_upload(uploads)
-        if upload == None:
-            return { "error": "no valid uploads" }
+        The sources will be ordered by least amount of errors, so most
+        successful hosts will be tried first. In case of failure, the next
+        source will be attempted, until the first successful download is
+        completed or all sources have been depleted.
 
-        try:
-            filename = self.download_from_host(
-                upload,
-                output_directory,
-                filename)
+        Args:
+            sources: A list of dicts with 'host_name' and 'url' keys.
+            output_directory (str): Directory to save the downloaded file in.
+            filename (str): Filename assigned to the downloaded file.
+        Returns:
+            A dict with 'host_name' and 'filename' keys if the download is
+            successful, or an empty dict otherwise.
 
-            return { "path": filename }
+        """
+        valid_sources = self._filter_sources(sources)
+        if not valid_sources:
+            return {'error': 'no valid sources'}
 
-        except subprocess.CalledProcessError:
-            return { "error": "plowshare error" }
+        manager = Manager()
+        successful_downloads = manager.list([])
+
+        def f(source):
+            if not successful_downloads:
+                result = self.download_from_host(source, output_directory, filename)
+                if 'error' in result:
+                    self._host_errors[source['host_name']] += 1
+                else:
+                    successful_downloads.append(result)
+
+        multiprocessing.dummy.Pool(len(valid_sources)).map(f, valid_sources)
+
+        return successful_downloads[0] if successful_downloads else {}
 
 
-    def download_from_host(self, upload, output_directory, filename):
+    def download_from_host(self, source, output_directory, filename):
         """Download a file from a given host.
 
         This method renames the file to the given string.
 
         """
-        output = subprocess.check_output(
-            ["plowdown", upload["url"], "-o", output_directory, "--temp-rename"],
-            stderr=open("/dev/null", "w"))
+        result = self._run_command(
+            ["plowdown", source["url"], "-o", output_directory, "--temp-rename"],
+            stderr=open("/dev/null", "w")
+        )
 
-        temporary_filename = self.parse_output(upload["host_name"], output)
-        final_filename     = os.path.join(output_directory, filename)
+        result['host_name'] = source['host_name']
 
-        os.rename(temporary_filename, final_filename)
+        if 'error' in result:
+            return result
 
-        return final_filename
+        temporary_filename = self.parse_output(result['host_name'], result['output'])
+        result['filename'] = os.path.join(output_directory, filename)
+        result.pop('output')
+
+        os.rename(temporary_filename, result['filename'])
+
+        return result
 
 
     def multiupload(self, filename, hosts):
-        """Upload filename to multiple hosts simultaneously."""
-        def f(host):
-            return self.upload_to_host(filename, host)
+        """Upload file to multiple hosts simultaneously
 
-        return multiprocessing.dummy.Pool(len(hosts)).map(f, hosts)
+        The upload will be attempted for each host until the optimal file
+        redundancy is achieved (a percentage of successful uploads) or the host
+        list is depleted.
+
+        Args:
+            filename (str): The filename of the file to upload.
+            hosts (list): A list of hosts as defined in the master host list.
+        Returns:
+            A list of dicts with 'host_name' and 'url' keys for all successful
+            uploads or an empty list if all uploads failed.
+
+        """
+        manager = Manager()
+        successful_uploads = manager.list([])
+
+        def f(host):
+            if len(successful_uploads)/float(len(hosts)) < settings.MIN_FILE_REDUNDANCY:
+                # Optimal redundancy not achieved, keep going
+                result = self.upload_to_host(filename, host)
+                if 'error' in result:
+                    self._host_errors[host] += 1
+                else:
+                    successful_uploads.append(result)
+
+        multiprocessing.dummy.Pool(len(hosts)).map(f, self._hosts_by_success(hosts))
+
+        return list(successful_uploads)
 
 
     def upload_to_host(self, filename, hostname):
@@ -87,16 +162,16 @@ class Plowshare(object):
         host name and an error flag.
 
         """
-        try:
-            output = subprocess.check_output(
-                ["plowup", hostname, filename],
-                stderr=open("/dev/null", "w"))
+        result = self._run_command(
+            ["plowup", hostname, filename],
+            stderr=open("/dev/null", "w")
+        )
 
-            output = self.parse_output(hostname, output)
-            return { "host_name": hostname, "url": output }
+        result['host_name'] = hostname
+        if 'error' not in result:
+            result['url'] = self.parse_output(hostname, result.pop('output'))
 
-        except subprocess.CalledProcessError:
-            return { "host_name": hostname, "error": True }
+        return result
 
 
     def parse_output(self, hostname, output):
@@ -106,16 +181,3 @@ class Plowshare(object):
 
         """
         return output.split()[-1]
-
-
-    def random_upload(self, uploads):
-        """Select a random valid upload."""
-        valid_uploads = [
-            upload
-            for upload in uploads
-            if "error" not in upload]
-
-        if len(valid_uploads) == 0:
-            return None
-
-        return random.choice(valid_uploads)

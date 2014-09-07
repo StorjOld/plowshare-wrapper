@@ -1,9 +1,8 @@
 language: python
-python: 2.7
 env:
-  - TOX_ENV=py27
-  - TOX_ENV=py34
+  - TOXENV=py27
+  - TOXENV=py34
 install:
-  - pip install -e '.[develop]'
+  - travis_retry pip install -e '.[develop]'
 script:
-  - tox -e $TOX_ENV
+  - tox

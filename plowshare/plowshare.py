@@ -180,4 +180,4 @@ class Plowshare(object):
         For now, we just return the last line.
 
         """
-        return output.split()[-1]
+        return str(output.split()[-1])

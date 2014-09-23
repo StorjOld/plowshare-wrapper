@@ -180,4 +180,6 @@ class Plowshare(object):
         For now, we just return the last line.
 
         """
-        return str(output.split()[-1])
+        if isinstance(output, bytes):
+            output = output.decode('utf-8')
+        return output.split()[-1]

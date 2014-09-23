@@ -1,7 +1,6 @@
-[![Build Status](https://travis-ci.org/Storj/plowshare-wrapper.svg)](https://travis-ci.org/Storj/plowshare-wrapper)
-
 plowshare-wrapper
 =================
+[![Build Status](https://travis-ci.org/Storj/plowshare-wrapper.svg)](https://travis-ci.org/Storj/plowshare-wrapper)
 
 Python wrapper for managing multi-host uploads and downloads using
 [plowshare](https://code.google.com/p/plowshare/). After uploading it returns

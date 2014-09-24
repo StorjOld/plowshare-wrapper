@@ -1,6 +1,7 @@
 plowshare-wrapper
 =================
 [![Build Status](https://travis-ci.org/Storj/plowshare-wrapper.svg)](https://travis-ci.org/Storj/plowshare-wrapper)
+[![Coverage Status](https://coveralls.io/repos/Storj/plowshare-wrapper/badge.png)](https://coveralls.io/r/Storj/plowshare-wrapper)
 
 Python wrapper for managing multi-host uploads and downloads using
 [plowshare](https://code.google.com/p/plowshare/). After uploading it returns

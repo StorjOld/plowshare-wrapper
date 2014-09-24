@@ -2,6 +2,7 @@ language: python
 env:
   - TOXENV=py27
   - TOXENV=py34
+  - TOXENV=coverage
 install:
   - travis_retry pip install -e '.[develop]'
 script:

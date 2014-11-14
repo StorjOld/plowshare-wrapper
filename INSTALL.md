@@ -11,7 +11,7 @@ If you're running Debian, you can install it using the following commands:
 
     wget https://plowshare.googlecode.com/files/plowshare4_1~git20140112.7ad41c8-1_all.deb
     sudo dpkg -i plowshare4_1~git20140112.7ad41c8-1_all.deb
-    sudo apt-get -f install
+    sudo apt-get -f install -y
 
 
 #### Using pip

@@ -1,14 +1,39 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import pytest
 
+# The MIT License (MIT)
+#
+# Copyright (c) 2014 Storj Labs
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+import pytest
 from plowshare import Plowshare
 
 
-# Fixtures ###
+# Fixtures
+FILEMETA = {'url': 'http://rghost.net/57830097', 'host_name': 'rghost'}
+
 
 class MockPool(object):
 
-    """A mock of multiprocessing's Pool that executes map() sequentially"""
+    """A mock of multiprocessing's Pool that executes map() sequentially."""
 
     def __init__(self, processes, *args, **kwargs):
         self._processes = processes
@@ -20,7 +45,7 @@ class MockPool(object):
 @pytest.fixture
 def patch_multiprocessing(monkeypatch):
     # Actually mock ThreadPool since multiprocessing.dummy.Pool is a wrapper
-    # around it
+    # around it.
     monkeypatch.setattr('multiprocessing.pool.ThreadPool', MockPool)
 
 
@@ -58,8 +83,6 @@ def patch_rename(monkeypatch):
     import os
     monkeypatch.setattr(os, 'rename', lambda *a: None)
 
-FILEMETA = {'url': 'http://rghost.net/57830097', 'host_name': 'rghost'}
-
 
 @pytest.fixture
 def patch_rnd_choice(monkeypatch):
@@ -72,8 +95,6 @@ def patch_rnd_sample(monkeypatch):
     import random
     monkeypatch.setattr(random, 'sample', lambda pop, k: pop[:k])
 
-
-# Plowshare fixtures and mocks
 
 @pytest.fixture
 def plowinst():
@@ -113,8 +134,7 @@ def patch_settings(monkeypatch):
     monkeypatch.setattr('plowshare.settings.MIN_FILE_REDUNDANCY', 0.2)
 
 
-# Tests ###
-
+# Tests
 def test_random_hosts(plowinst, patch_rnd_sample):
     result = plowinst.random_hosts(2)
     assert result == ['ge_tt', 'multiupload']

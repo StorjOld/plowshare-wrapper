@@ -13,6 +13,10 @@ If you're running Ubuntu, you can install it using the following commands:
     $ sudo apt-get update
     $ sudo apt-get install plowshare4
 
+On OSX, you can install it with Homebrew:
+
+    $ brew install plowshare
+
 #### Using Pip
 
 Install plowshare-wrapper using pip, directly from github:

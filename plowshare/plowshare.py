@@ -13,9 +13,11 @@ from . import settings
 
 
 class Plowshare(object):
+
     """Upload and download files using the plowshare tool.
 
     """
+
     def __init__(self, host_list=hosts.anonymous):
         self.hosts = host_list
         self._host_errors = defaultdict(int)
@@ -40,8 +42,8 @@ class Plowshare(object):
             filtered.append(source)
             hosts.append(source['host_name'])
 
-        return sorted(filtered, key=lambda s: \
-                self._hosts_by_success(hosts).index(s['host_name']))
+        return sorted(filtered, key=lambda s:
+                      self._hosts_by_success(hosts).index(s['host_name']))
 
     def random_hosts(self, number_of_hosts):
         """Retrieve a random subset of available hosts.
@@ -53,11 +55,9 @@ class Plowshare(object):
         """
         return random.sample(self.hosts, number_of_hosts)
 
-
     def upload(self, filename, number_of_hosts):
         """Upload the given file to the specified number of hosts."""
         return self.multiupload(filename, self.random_hosts(number_of_hosts))
-
 
     def download(self, sources, output_directory, filename):
         """Download a file from one of the provided sources
@@ -85,7 +85,8 @@ class Plowshare(object):
 
         def f(source):
             if not successful_downloads:
-                result = self.download_from_host(source, output_directory, filename)
+                result = self.download_from_host(
+                    source, output_directory, filename)
                 if 'error' in result:
                     self._host_errors[source['host_name']] += 1
                 else:
@@ -95,7 +96,6 @@ class Plowshare(object):
 
         return successful_downloads[0] if successful_downloads else {}
 
-
     def download_from_host(self, source, output_directory, filename):
         """Download a file from a given host.
 
@@ -103,7 +103,8 @@ class Plowshare(object):
 
         """
         result = self._run_command(
-            ["plowdown", source["url"], "-o", output_directory, "--temp-rename"],
+            ["plowdown", source["url"], "-o",
+                output_directory, "--temp-rename"],
             stderr=open("/dev/null", "w")
         )
 
@@ -112,14 +113,14 @@ class Plowshare(object):
         if 'error' in result:
             return result
 
-        temporary_filename = self.parse_output(result['host_name'], result['output'])
+        temporary_filename = self.parse_output(
+            result['host_name'], result['output'])
         result['filename'] = os.path.join(output_directory, filename)
         result.pop('output')
 
         os.rename(temporary_filename, result['filename'])
 
         return result
-
 
     def multiupload(self, filename, hosts):
         """Upload file to multiple hosts simultaneously
@@ -140,7 +141,8 @@ class Plowshare(object):
         successful_uploads = manager.list([])
 
         def f(host):
-            if len(successful_uploads)/float(len(hosts)) < settings.MIN_FILE_REDUNDANCY:
+            if len(successful_uploads) / float(len(hosts)) < \
+                    settings.MIN_FILE_REDUNDANCY:
                 # Optimal redundancy not achieved, keep going
                 result = self.upload_to_host(filename, host)
                 if 'error' in result:
@@ -148,10 +150,10 @@ class Plowshare(object):
                 else:
                     successful_uploads.append(result)
 
-        multiprocessing.dummy.Pool(len(hosts)).map(f, self._hosts_by_success(hosts))
+        multiprocessing.dummy.Pool(len(hosts)).map(
+            f, self._hosts_by_success(hosts))
 
         return list(successful_uploads)
-
 
     def upload_to_host(self, filename, hostname):
         """Upload a file to the given host.
@@ -172,7 +174,6 @@ class Plowshare(object):
             result['url'] = self.parse_output(hostname, result.pop('output'))
 
         return result
-
 
     def parse_output(self, hostname, output):
         """Parse plowup's output.

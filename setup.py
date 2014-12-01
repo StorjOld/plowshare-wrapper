@@ -60,7 +60,7 @@ setup(
     name='plowshare',
     version=version,
     url='https://github.com/storj/plowshare-wrapper',
-    download_url='https://github.com/storj/plowshare-wrapper/tarball/'+version
+    download_url='https://github.com/storj/plowshare-wrapper/tarball/'+version,
     license='MIT',
     author='Hugo Peixoto',
     author_email='hugo.peixoto@gmail.com',

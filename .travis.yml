@@ -1,8 +1,15 @@
 language: python
-env:
-  - TOXENV=py27
-  - TOXENV=py34
+python:
+  - 2.7
+  - 3.3
+  - 3.4
 install:
-  - travis_retry pip install -e '.[develop]'
-script:
-  - tox
+  - pip install coverage
+script: 
+  - python setup.py install
+  - coverage run setup.py test -a "--doctest-modules --pep8 -v tests/"
+  - coverage report -m --include="plowshare/*"
+after_success: coveralls
+notifications:
+  slack:
+    secure: SGzOs68mIHQdliO/9CVKfYVbkS4d72dB5ta7PggnJsIGl6Eq8dRruRa5oj5tYLbVkPW4xMUGvBzETc8w0U0bgIsrkF03OMzZU9nnBOckvf3L4tu3+nLOiiYJgyQdSOYnmL39s1u1fOjQZp6Z2aTF4g8t7OzxZnBoIKNDdFklgos=

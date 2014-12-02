@@ -24,7 +24,7 @@
 # SOFTWARE.
 
 import pytest
-from plowshare import Plowshare
+from plowshare.plowshare import Plowshare
 
 
 # Fixtures

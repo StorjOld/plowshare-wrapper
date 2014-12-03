@@ -11,7 +11,7 @@ command line tool.
 Installation
 ------------
 
-Check `INSTALL.md`_ for installation instructions.
+Check `INSTALL.rst`_ for installation instructions.
 
 Module Usage
 ------------
@@ -27,7 +27,7 @@ file to multiple hosts at once. Example:
     import plowshare
 
     p = plowshare.Plowshare()
-    p.upload('/home/jessie/documents/README.md', 3)
+    p.upload('/home/jessie/documents/README.rst', 3)
 
 The above example uploads the given file to three different hosts,
 chosen at random from a predefined list. This list is a subset of the
@@ -41,7 +41,7 @@ You can also specify a list of hosts (plowshare module names) to use:
     import plowshare
 
     p = plowshare.Plowshare(['turbobit', 'multiupload', 'exoshare', 'rghost', 'bayfiles'])
-    p.upload('/home/jessie/documents/README.md', 3)
+    p.upload('/home/jessie/documents/README.rst', 3)
 
 The upload method returns an array of objects with the hosts and URLs to
 which it uploaded the file. If some of the uploads fail, it doesn’t
@@ -77,7 +77,7 @@ Example:
     ]
 
     p = plowshare.Plowshare()
-    p.download(info, '/tmp/', 'readme_copy.md')
+    p.download(info, '/tmp/', 'readme_copy.rst')
 
 If multiple sources are provided, they are used as failovers for
 downloading the file. If at least one source is successful, the others
@@ -86,17 +86,17 @@ full path filename and the first host it successfuly downloaded it from:
 
 ::
 
-    { "host_name": "mediafire", "filename": "/tmp/readme_copy.md" }
+    { "host_name": "mediafire", "filename": "/tmp/readme_copy.rst" }
 
 There are multiple errors that can occur. Here’s a list of the currently
 supported errors:
 
 ::
 
-    { "error": "no valid sources" }     # the provided object does not contain a valid source.
+    { "error": "no valid sources" } 
 
 .. _plowshare: https://code.google.com/p/plowshare/
-.. _INSTALL.md: INSTALL.md
+.. _INSTALL.rst: INSTALL.rst
 
 .. |Build Status| image:: https://travis-ci.org/Storj/plowshare-wrapper.svg
    :target: https://travis-ci.org/Storj/plowshare-wrapper

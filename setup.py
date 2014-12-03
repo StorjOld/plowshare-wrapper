@@ -27,7 +27,7 @@ from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
 LONG_DESCRIPTION = open('README.rst').read()
-VERSION = '0.3.4'
+VERSION = '0.3.5'
 
 test_requirements = [
     'pytest',

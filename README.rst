@@ -11,7 +11,7 @@ command line tool.
 Installation
 ------------
 
-Check `INSTALL.rst`_ for installation instructions.
+Check INSTALL.rst for installation instructions.
 
 Module Usage
 ------------
@@ -96,7 +96,6 @@ supported errors:
     { "error": "no valid sources" } 
 
 .. _plowshare: https://code.google.com/p/plowshare/
-.. _INSTALL.rst: INSTALL.rst
 
 .. |Build Status| image:: https://travis-ci.org/Storj/plowshare-wrapper.svg
    :target: https://travis-ci.org/Storj/plowshare-wrapper

@@ -1,7 +1,7 @@
 Plowshare Wrapper
 =================
 
-|Build Status| |Coverage Status|
+|Build Status| |Coverage Status| |PyPI version|
 
 Python wrapper for managing multi-host uploads and downloads using
 `plowshare`_. After uploading it returns an object with links to the
@@ -102,3 +102,5 @@ supported errors:
    :target: https://travis-ci.org/Storj/plowshare-wrapper
 .. |Coverage Status| image:: https://coveralls.io/repos/Storj/plowshare-wrapper/badge.png?branch=master
    :target: https://coveralls.io/r/Storj/plowshare-wrapper?branch=master
+.. |PyPI version| image:: https://badge.fury.io/py/plowshare.svg
+   :target: http://badge.fury.io/py/plowshare

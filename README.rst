@@ -27,7 +27,7 @@ file to multiple hosts at once. Example:
     import plowshare
 
     p = plowshare.Plowshare()
-    p.upload("/home/jessie/documents/README.md", 3)
+    p.upload('/home/jessie/documents/README.md', 3)
 
 The above example uploads the given file to three different hosts,
 chosen at random from a predefined list. This list is a subset of the
@@ -41,7 +41,7 @@ You can also specify a list of hosts (plowshare module names) to use:
     import plowshare
 
     p = plowshare.Plowshare(['turbobit', 'multiupload', 'exoshare', 'rghost', 'bayfiles'])
-    p.upload("/home/jessie/documents/README.md", 3)
+    p.upload('/home/jessie/documents/README.md', 3)
 
 The upload method returns an array of objects with the hosts and URLs to
 which it uploaded the file. If some of the uploads fail, it doesn’t
@@ -71,13 +71,13 @@ Example:
     import plowshare
 
     uploads = [
-        { "host_name": "mediafire",  "url":"http://www.mediafire.com/?qorncpzfe74s9" },
-        { "host_name": "rapidshare", "url":"http://rapidshare.com/files/130403982" },
-        { "host_name": "anonfiles",  "error":true }
+        { 'host_name': 'mediafire',  'url':'http://www.mediafire.com/?qorncpzfe74s9' },
+        { 'host_name': 'rapidshare', 'url':'http://rapidshare.com/files/130403982' },
+        { 'host_name': 'anonfiles',  'error':true }
     ]
 
     p = plowshare.Plowshare()
-    p.download(info, "/tmp/", "readme_copy.md")
+    p.download(info, '/tmp/', 'readme_copy.md')
 
 If multiple sources are provided, they are used as failovers for
 downloading the file. If at least one source is successful, the others
@@ -93,7 +93,7 @@ supported errors:
 
 ::
 
-    { "error": "no valid sources" }     # the provided object does not contain a 
+    { "error": "no valid sources" }     # the provided object does not contain a valid source.
 
 .. _plowshare: https://code.google.com/p/plowshare/
 .. _INSTALL.md: INSTALL.md

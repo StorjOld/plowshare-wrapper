@@ -27,7 +27,7 @@ from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
 LONG_DESCRIPTION = open('README.rst').read()
-VERSION = '0.3.3'
+VERSION = '0.3.4'
 
 test_requirements = [
     'pytest',
@@ -56,7 +56,6 @@ class PyTest(TestCommand):
         import sys
         errno = pytest.main(self.pytest_args)
         sys.exit(errno)
-
 
 setup(
     name='plowshare',

@@ -27,15 +27,8 @@ On OSX, you can install it with Homebrew:
 Using Pip
 ^^^^^^^^^
 
-Install plowshare-wrapper using pip, directly from github:
+Install plowshare-wrapper using pip:
 
 ::
 
-    sudo pip install git+https://github.com/Storj/plowshare-wrapper
-
-If you wish to install a specific version/tag, you can do it using the
-``@`` syntax:
-
-::
-
-    sudo pip install git+https://github.com/Storj/plowshare-wrapper@v0.3.0
+    $ sudo pip install plowshare

@@ -26,7 +26,8 @@
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 
-version = '0.3.0'
+LONG_DESCRIPTION = open('README.rst').read()
+VERSION = '0.3.0'
 
 test_requirements = [
     'pytest',
@@ -59,14 +60,15 @@ class PyTest(TestCommand):
 
 setup(
     name='plowshare',
-    version=version,
+    version=VERSION,
     url='https://github.com/storj/plowshare-wrapper',
     download_url='https://github.com/storj/plowshare-wrapper/tarball/' +
-        version,
-    license='MIT',
+        VERSION,
+    license=open('LICENSE').read(),
     author='Hugo Peixoto',
     author_email='hugo.peixoto@gmail.com',
     description='Manages multi-host uploads using plowshare.',
+    long_description=LONG_DESCRIPTION,
     packages=['plowshare'],
     cmdclass={'test': PyTest},
     tests_require=test_requirements,

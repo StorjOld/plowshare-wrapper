@@ -39,27 +39,53 @@ from . import settings
 
 class Plowshare(object):
 
-    """Upload and download files using the plowshare tool.
-
-    """
+    """Upload and download files using the plowshare tool."""
 
     def __init__(self, host_list=hosts.anonymous):
+        """Initialize Plowshare with the supplied hosts list.
+
+        :param host_list: List of potential hosts to upload to.
+        :type host_list: list
+        """
         self.hosts = host_list
         self._host_errors = defaultdict(int)
 
     def _run_command(self, command, **kwargs):
+        """Wrapper to pass command to plowshare.
+
+        :param command: The command to pass to plowshare.
+        :type command: str
+        :param **kwargs: Additional keywords passed into
+        :type **kwargs: dict
+        :returns: Object containing either output of plowshare command or an
+                  error message.
+        :rtype: dict
+        :raises: Exception
+        """
         try:
             return {'output': subprocess.check_output(command, **kwargs)}
         except Exception as e:
             return {'error': str(e)}
 
     def _hosts_by_success(self, hosts=[]):
-        """Order hosts by most successful (least amount of errors) first"""
+        """Order hosts by most successful (least amount of errors) first.
+
+        :param hosts: List of hosts.
+        :type hosts: list
+        :returns: List of hosts sorted by successful connections.
+        :rtype: list
+        """
         hosts = hosts if hosts else self.hosts
         return sorted(hosts, key=lambda h: self._host_errors[h])
 
     def _filter_sources(self, sources):
-        """Remove sources with errors and return ordered by host success"""
+        """Remove sources with errors and return ordered by host success.
+
+        :param sources: List of potential sources to connect to.
+        :type sources: list
+        :returns: Sorted list of potential sources without errors.
+        :rtype: list
+        """
         filtered, hosts = [], []
         for source in sources:
             if 'error' in source:
@@ -77,11 +103,25 @@ class Plowshare(object):
         than the number of available of hosts, otherwise
         it will throw a ValueError exception.
 
+        :param number_of_hosts: Number of hosts to connect to.
+        :type number_of_hosts: int
+        :returns: Random subsample of available hosts.
+        :rtype: list
+        :raises: ValueError
         """
         return random.sample(self.hosts, number_of_hosts)
 
     def upload(self, filename, number_of_hosts):
-        """Upload the given file to the specified number of hosts."""
+        """Upload the given file to the specified number of hosts.
+
+        :param filename: The filename of the file to upload.
+        :type filename: str
+        :param number_of_hosts: The number of hosts to connect to.
+        :type number_of_hosts: int
+        :returns:  A list of dicts with 'host_name' and 'url' keys for all
+                   successful uploads or an empty list if all uploads failed.
+        :rtype: list
+        """
         return self.multiupload(filename, self.random_hosts(number_of_hosts))
 
     def download(self, sources, output_directory, filename):
@@ -92,14 +132,15 @@ class Plowshare(object):
         source will be attempted, until the first successful download is
         completed or all sources have been depleted.
 
-        Args:
-            sources: A list of dicts with 'host_name' and 'url' keys.
-            output_directory (str): Directory to save the downloaded file in.
-            filename (str): Filename assigned to the downloaded file.
-        Returns:
-            A dict with 'host_name' and 'filename' keys if the download is
-            successful, or an empty dict otherwise.
-
+        :param sources: A list of dicts with 'host_name' and 'url' keys.
+        :type sources: list
+        :param output_directory: Directory to save the downloaded file in.
+        :type output_directory: str
+        :param filename: Filename assigned to the downloaded file.
+        :type filename: str
+        :returns: A dict with 'host_name' and 'filename' keys if the download
+                  is successful, or an empty dict otherwise.
+        :rtype: dict
         """
         valid_sources = self._filter_sources(sources)
         if not valid_sources:
@@ -126,6 +167,14 @@ class Plowshare(object):
 
         This method renames the file to the given string.
 
+        :param source: Dictionary containing information about host.
+        :type source: dict
+        :param output_directory: Directory to place output in.
+        :type output_directory: str
+        :param filename: The filename to rename to.
+        :type filename: str
+        :returns: Dictionary with information about downloaded file.
+        :rtype: dict
         """
         result = self._run_command(
             ["plowdown", source["url"], "-o",
@@ -154,13 +203,13 @@ class Plowshare(object):
         redundancy is achieved (a percentage of successful uploads) or the host
         list is depleted.
 
-        Args:
-            filename (str): The filename of the file to upload.
-            hosts (list): A list of hosts as defined in the master host list.
-        Returns:
-            A list of dicts with 'host_name' and 'url' keys for all successful
-            uploads or an empty list if all uploads failed.
-
+        :param filename: The filename of the file to upload.
+        :type filename: str
+        :param hosts: A list of hosts as defined in the master host list.
+        :type hosts: list
+        :returns:  A list of dicts with 'host_name' and 'url' keys for all
+                   successful uploads or an empty list if all uploads failed.
+        :rtype: list
         """
         manager = Manager()
         successful_uploads = manager.list([])
@@ -188,6 +237,12 @@ class Plowshare(object):
         and the final URL. Otherwise, it returns a dictionary with the
         host name and an error flag.
 
+        :param filename: The filename of the file to upload.
+        :type filename: str
+        :param hostname: The host you are uploading the file to.
+        :type hostname: str
+        :returns: Dictionary containing information about upload to host.
+        :rtype: dict
         """
         result = self._run_command(
             ["plowup", hostname, filename],
@@ -205,6 +260,13 @@ class Plowshare(object):
 
         For now, we just return the last line.
 
+        :param hostname: Name of host you are working with.
+        :type hostname: str
+        :param output: Dictionary containing information about a plowshare
+                       action.
+        :type output: dict
+        :returns: Parsed and decoded output list.
+        :rtype: list
         """
         if isinstance(output, bytes):
             output = output.decode('utf-8')
